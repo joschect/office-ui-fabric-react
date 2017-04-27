@@ -14,31 +14,9 @@ const GroupedListCustomExampleCode = require('!raw-loader!office-ui-fabric-react
 export class GroupedListPage extends React.Component<IComponentDemoPageProps, {}> {
   public render() {
     return (
-      <ComponentPage
-        title='GroupedList'
-        componentName='GroupedListExample'
-        exampleCards={
-          <div>
-            <ExampleCard title='GroupedList basic example' isOptIn={ true } code={ GroupedListBasicExampleCode }>
-              <GroupedListBasicExample />
-            </ExampleCard>
-            <ExampleCard title='GroupedList example with custom header and footer' isOptIn={ true } code={ GroupedListCustomExampleCode }>
-              <GroupedListCustomExample />
-            </ExampleCard>
-          </div>
-        }
-        propertiesTables={
-          <PropertiesTableSet
-            sources={ [
-              require<string>('!raw-loader!office-ui-fabric-react/src/components/GroupedList/GroupedList.Props.ts')
-            ] }
-          />
-        }
-        overview={
-          <p>Allows you to render a set of items as multiple lists with various grouping properties.</p>
-        }
-        isHeaderVisible={ this.props.isHeaderVisible }>
-      </ComponentPage>
+      <div>
+        <GroupedListBasicExample />
+      </div>
     );
   }
 

@@ -3,7 +3,7 @@ import {
   GroupedList,
   IGroup
 } from 'office-ui-fabric-react/lib/components/GroupedList/index';
-import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
+import { IColumn, DetailsList } from 'office-ui-fabric-react/lib/DetailsList';
 import { DetailsRow } from 'office-ui-fabric-react/lib/components/DetailsList/DetailsRow';
 import {
   FocusZone
@@ -20,7 +20,7 @@ import {
 } from '@uifabric/example-app-base';
 
 const groupCount = 3;
-const groupDepth = 3;
+const groupDepth = 2;
 
 let _items: any[];
 let _groups: IGroup[];
@@ -31,8 +31,8 @@ export class GroupedListBasicExample extends React.Component<any, any> {
   constructor() {
     super();
 
-    _items = _items || createListItems(Math.pow(groupCount, groupDepth + 1));
-    _groups = _groups || createGroups(groupCount, groupDepth, 0, groupCount);
+    _items = _items || createListItems(200000);
+    _groups = _groups || this.createGroups(groupCount, groupDepth, 0, 150);
 
     this._onRenderCell = this._onRenderCell.bind(this);
     this._selection = new Selection;
@@ -46,12 +46,17 @@ export class GroupedListBasicExample extends React.Component<any, any> {
           selection={ this._selection }
           selectionMode={ SelectionMode.multiple }
         >
-          <GroupedList
+          <DetailsList
             items={ _items }
-            onRenderCell={ this._onRenderCell }
             selection={ this._selection }
             selectionMode={ SelectionMode.multiple }
             groups={ _groups }
+            groupProps={ {
+              isAllGroupsCollapsed: true,
+              getGroupItemLimit: () => 100
+            }
+            }
+
           />
         </SelectionZone>
       </FocusZone>
@@ -82,4 +87,26 @@ export class GroupedListBasicExample extends React.Component<any, any> {
       />
     );
   }
+
+  public createGroups(
+    groupCount: number, groupDepth: number, startIndex: number,
+    itemsPerGroup: number, level?: number, key?: string): IGroup[] {
+    key = key ? key + '-' : '';
+    level = level ? level : 0;
+    let count = Math.pow(itemsPerGroup, groupDepth);
+    return Array.apply(null, Array(groupCount)).map((value, index) => {
+      return {
+        count: count,
+        key: 'group' + key + index,
+        name: 'group ' + key + index,
+        startIndex: index * count + startIndex,
+        level: level,
+        isCollapsed: true,
+        children: groupDepth > 1 ?
+          this.createGroups(groupCount, groupDepth - 1, index * count + startIndex, itemsPerGroup, level + 1, key + index) :
+          []
+      };
+    });
+  }
+
 }
