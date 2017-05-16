@@ -65,6 +65,11 @@ export interface IListProps extends React.HTMLProps<List | HTMLDivElement> {
 
   /** Number of items to render. Defaults to items.length. */
   renderCount?: number;
+
+  /** whether or not the list should remeasure before it renders
+   * @default false
+   */
+  forceRemeasure?: boolean;
 }
 
 export interface IPage {

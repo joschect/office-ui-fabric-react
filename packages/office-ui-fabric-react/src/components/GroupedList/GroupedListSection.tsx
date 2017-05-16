@@ -36,7 +36,7 @@ import { assign, css } from '../../Utilities';
 import { IViewport } from '../../utilities/decorators/withViewport';
 import * as stylesImport from './GroupedList.scss';
 const styles: any = stylesImport;
-
+var listnumber = 0;
 export interface IGroupedListSectionProps extends React.Props<GroupedListSection> {
   /** Map of callback functions related to drag and drop functionality. */
   dragDropEvents?: IDragDropEvents;
@@ -112,10 +112,12 @@ export class GroupedListSection extends BaseComponent<IGroupedListSectionProps, 
     [key: string]: GroupedListSection;
   };
   private _dragDropSubscription: IDisposable;
+  private _listnumber: number;
 
   constructor(props: IGroupedListSectionProps) {
     super(props);
-
+    this._listnumber = listnumber;
+    listnumber++;
     let { selection, group } = props;
 
     this._subGroups = {};
@@ -155,6 +157,10 @@ export class GroupedListSection extends BaseComponent<IGroupedListSectionProps, 
       if (this.props.dragDropHelper) {
         this._dragDropSubscription = this.props.dragDropHelper.subscribe(this.refs.root, this._events, this._getGroupDragDropOptions());
       }
+    }
+
+    if (previousProps.items !== this.props.items) {
+      console.log('list got new items', this.props.items.length);
     }
   }
 
@@ -197,7 +203,7 @@ export class GroupedListSection extends BaseComponent<IGroupedListSectionProps, 
           group && group.isCollapsed ?
             null :
             (
-              hasNestedGroups ?
+              hasNestedGroups && !console.log("Rendering children for", this._listnumber, group.children) ?
                 (
                   <List
                     ref='list'
@@ -215,8 +221,8 @@ export class GroupedListSection extends BaseComponent<IGroupedListSectionProps, 
   }
 
   public forceUpdate() {
-    super.forceUpdate();
     this.forceListUpdate();
+    super.forceUpdate();
   }
 
   public forceListUpdate() {
@@ -232,7 +238,8 @@ export class GroupedListSection extends BaseComponent<IGroupedListSectionProps, 
           let subGroup = this.refs.list.refs['subGroup_' + String(i)] as GroupedListSection;
 
           if (subGroup) {
-            subGroup.forceListUpdate();
+            subGroup.forceUpdate();
+            console.log('force update group', subGroup);
           }
         }
       }

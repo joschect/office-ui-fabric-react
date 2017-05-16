@@ -1,107 +1,322 @@
 import * as React from 'react';
 import { Link } from 'office-ui-fabric-react/lib/Link';
-import {
-  ExampleCard,
-  IComponentDemoPageProps,
-  ComponentPage,
-  PropertiesTableSet
-} from '@uifabric/example-app-base';
-import { DetailsListBasicExample } from './examples/DetailsList.Basic.Example';
-const DetailsListBasicExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.Basic.Example.tsx') as string;
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
+import { Image, ImageFit } from 'office-ui-fabric-react/lib/Image';
+import { DetailsList } from 'office-ui-fabric-react/lib/DetailsList';
+import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
+import { IconButton } from 'office-ui-fabric-react/lib/Button';
+import { Selection } from 'office-ui-fabric-react/lib/Selection';
+const SUBREDDIT = 'bostonterriers';
+const THUMBSIZE = 80;
+let columns = [
+  {
+    key: 'score',
+    name: 'Score',
+    fieldName: 'score',
+    minWidth: 40,
+    maxWidth: 40,
+    isResizable: true
+  },
+  {
+    key: 'thumb',
+    fieldName: 'thumb',
+    name: 'thub',
+    minWidth: THUMBSIZE,
+    maxWidth: THUMBSIZE,
+    onRender: (item) => (
+      <Image
+        className='thumb'
+        imageFit={ ImageFit.cover }
+        src={ item.thumb }
+        width={ THUMBSIZE }
+        height={ THUMBSIZE }
+      />)
+  },
+  {
+    key: 'article',
+    name: 'Post',
+    fieldName: 'thumb',
+    minWidth: 100,
+    maxWidth: 180,
+    isResizable: true,
+    onRender: (item) => (
+      <div style={ { whiteSpace: 'normal' } }>
+        <Link className='ms-font-xl' href={ item.url } target='_blank'>{ item.title }</Link>
+        <div className='itemMetadata'>
+          <span>By { item.author }</span>
+          <span><i className='ms-Icon ms-Icon--Chat' /> { item.comments } comment{ item.comments === 1 ? '' : 's' }</span>
+        </div>
+      </div>
+    )
+  },
+  {
+    key: 'author',
+    name: 'Author',
+    fieldName: 'thumb',
+    minWidth: 40,
+    maxWidth: 40,
+    isResizable: true,
+    onRender: (item) => (
+      <div> { item.author } </div>
+    )
+  },
+  {
+    key: 'id',
+    name: 'Id',
+    fieldName: 'thumb',
+    minWidth: 40,
+    maxWidth: 40,
+    isResizable: true,
+    onRender: (item) => (
+      <div style={
+        {
+          backgroundColor: 'blue',
+          color: 'silver',
+          height: '100px'
+        }
+      }> { item.key } </div>
+    )
+  },
+  {
+    key: 'subreddit',
+    name: 'Subreddit',
+    fieldName: 'thumb',
+    minWidth: 40,
+    maxWidth: 40,
+    isResizable: true,
+    onRender: (item) => (
+      <div style={ { backgroundColor: 'red' } }> { item.subreddit } </div>
+    )
+  },
+  {
+    key: 'url',
+    name: 'Url',
+    fieldName: 'thumb',
+    minWidth: 40,
+    maxWidth: 40,
+    isResizable: true,
+    onRender: (item) => (
+      <div style={ { backgroundColor: 'pink' } }>
+        <Link> { item.url } </Link>
+      </div>
+    )
+  }
+];
 
-import { DetailsListCustomColumnsExample } from './examples/DetailsList.CustomColumns.Example';
-const DetailsListCustomColumnsExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.CustomColumns.Example.tsx') as string;
+export class DetailsListPage extends React.Component<{}, {
+  rows,
+  subreddit,
+  isLoading,
+  nextPageToken
+}> {
+  private _selection;
+  private _groups = [
+    {
+      key: 'tow',
+      name: 'tow',
+      startIndex: 0,
+      count: 1,
+      level: 0,
+      isCollapsed: true,
+      children: [{
+        key: 'a',
+        name: 'a',
+        startIndex: 0,
+        count: 1,
+        level: 1,
+        isCollapsed: true
+      }]
+    },
+    {
+      key: 'twee',
+      name: 'twee',
+      startIndex: 0,
+      count: 1,
+      level: 0,
+      isCollapsed: true,
+      children: [{
+        key: 'b',
+        name: 'b',
+        startIndex: 0,
+        count: 1,
+        level: 1,
+        isCollapsed: true
+      }]
+    },
+    {
+      key: 'one',
+      name: 'one',
+      startIndex: 1,
+      count: 200,
+      level: 0,
+      isCollapsed: true,
+      children: [{
+        key: 'onesub',
+        name: 'onesub',
+        startIndex: 1,
+        count: 50,
+        level: 1,
+        isCollapsed: true
+      },
+      {
+        key: 'twosub',
+        name: 'twosub',
+        startIndex: 52,
+        count: 60,
+        level: 1,
+        isCollapsed: true
+      }]
+    }
+  ];
+  private _list;
+  constructor() {
+    super();
 
-import { DetailsListCustomRowsExample } from './examples/DetailsList.CustomRows.Example';
-const DetailsListCustomRowsExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.CustomRows.Example.tsx') as string;
+    this._selection = new Selection();
+    this.state = {
+      rows: [],
+      isLoading: false,
+      subreddit: SUBREDDIT,
+      nextPageToken: null
+    };
+    this._onReloadClick = this._onReloadClick.bind(this);
+  }
 
-import { DetailsListCustomGroupHeadersExample } from './examples/DetailsList.CustomGroupHeaders.Example';
-const DetailsListCustomGroupHeadersExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.CustomGroupHeaders.Example.tsx') as string;
+  public componentDidMount() {
+    // this._onReloadClick();
+  }
+  public hasGottenStuff: boolean = false;
 
-import { DetailsListAdvancedExample } from './examples/DetailsList.Advanced.Example';
-const DetailsListAdvancedExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.Advanced.Example.tsx') as string;
-
-import { DetailsListGroupedExample } from './examples/DetailsList.Grouped.Example';
-const DetailsListGroupedExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.Grouped.Example.tsx') as string;
-
-import { DetailsListDragDropExample } from './examples/DetailsList.DragDrop.Example';
-const DetailsListDragDropExampleCode = require('!raw-loader!office-ui-fabric-react/src/components/DetailsList/examples/DetailsList.DragDrop.Example.tsx') as string;
-
-export class DetailsListPage extends React.Component<IComponentDemoPageProps, {}> {
   public render() {
+    let { rows, subreddit, isLoading } = this.state;
+
     return (
-      <ComponentPage
-        title='DetailsList'
-        componentName='DetailsListExample'
-        exampleCards={
-          <div>
-            <ExampleCard title='Simple DetailsList with 500 items, filtering, marquee selection' isOptIn={ true } code={ DetailsListBasicExampleCode }>
-              <DetailsListBasicExample />
-            </ExampleCard>
-            <ExampleCard title='Simple Grouped DetailsList' isOptIn={ true } code={ DetailsListGroupedExampleCode }>
-              <DetailsListGroupedExample />
-            </ExampleCard>
-            <ExampleCard title='Rendering custom item columns with sorting' isOptIn={ true } code={ DetailsListCustomColumnsExampleCode }>
-              <DetailsListCustomColumnsExample />
-            </ExampleCard>
-            <ExampleCard title='Rendering custom item rows' isOptIn={ true } code={ DetailsListCustomRowsExampleCode }>
-              <DetailsListCustomRowsExample />
-            </ExampleCard>,
-            <ExampleCard title='Rendering custom group headers' isOptIn={ true } code={ DetailsListCustomGroupHeadersExampleCode }>
-              <DetailsListCustomGroupHeadersExample />
-            </ExampleCard>
-            <ExampleCard title='Advanced DetailsList of 5000 items, variable row heights' isOptIn={ true } code={ DetailsListAdvancedExampleCode }>
-              <DetailsListAdvancedExample />
-            </ExampleCard>
-            <ExampleCard title='Drag and Drop DetailsList with 10 items' isOptIn={ true } code={ DetailsListDragDropExampleCode }>
-              <DetailsListDragDropExample />
-            </ExampleCard>
-          </div>
-        }
-        propertiesTables={
-          <PropertiesTableSet
-            sources={ [
-              require<string>('!raw-loader!office-ui-fabric-react/src/components/DetailsList/DetailsList.Props.ts')
-            ] }
-          />
-        }
-        overview={
-          <div>
-            <p>
-              DetailsList is a derivative of the <Link href='#/examples/list'>List</Link> component. It is a robust way to display an information rich collection of items. It can support powerful ways to aid a user in finding content with sorting, grouping and filtering. Lists are a great way to handle large amounts of content, but poorly designed Lists can be difficult to parse.
-            </p>
-            <p>
-              Use a DetailsList when density of information is critical. Lists can support single and multiple selection, as well as drag and drop and marquee selection. They are composed of a column header, which contains the metadata fields which are attached to the list items, and provide the ability to sort, filter and even group the list. List items are composed of selection, icon, and name columns at minimum. One can also include other columns such as Date Modified, or any other metadata field associated with the collection. Place the most important columns from left to right for ease of recall and comparison.
-            </p>
-            <p>
-              DetailsList is classically used to display files, but is also used to render custom lists that can be purely metadata. Avoid using file type icon overlays to denote status of a file as it can make the entire icon unclear. Be sure to leave ample width for each column’s data. If there are multiple lines of text in a column, consider the variable row height variant.
-            </p>
-          </div>
-        }
-        bestPractices={
-          <div></div>
-        }
-        dos={
-          <div>
-            <ul>
-              <li>Use them to display content.</li>
-              <li>Provide useful columns of metadata.</li>
-              <li>Display columns in order of importance left to right or right to left depending on the standards of the culture.</li>
-              <li>Give columns ample default width to display information.</li>
-            </ul>
-          </div>
-        }
-        donts={
-          <div>
-            <ul>
-              <li>Use them to display commands or settings.</li>
-              <li>Overload the view with too many columns that require excessive horizontal scrolling.</li>
-              <li>Make columns so narrow that it truncates the information in typical cases.</li>
-            </ul>
-          </div>
-        }
-        isHeaderVisible={ this.props.isHeaderVisible }>
-      </ComponentPage>
+      <div>
+        <div className='ms-font-xxl titleArea'>
+          <span className='title'>reddit/r/<Link className='reddit'>{ subreddit }</Link></span>
+          { !isLoading ? (
+            <IconButton icon='Refresh' className='refresh' onClick={ this._onReloadClick } />
+          ) : (
+              <Spinner className='inlineSpinner' />
+            ) }
+        </div>
+        { rows && (
+          <MarqueeSelection selection={ this._selection }>
+            <DetailsList
+              ref={ (list) => this._list = list }
+              items={ rows }
+              columns={ columns }
+              selection={ this._selection }
+              groups={ this._groups }
+              groupProps={ {
+                isAllGroupsCollapsed: true,
+                onRenderFooter: () => <div> { "I'm a footer!" } </div>,
+                headerProps: {
+                  onToggleCollapse: (group) => this._onCollapse(group)
+                }
+              }
+              }
+            />
+            { isLoading && (
+              <Spinner className='loadingSpinner' label='Loading...' />
+            ) }
+          </MarqueeSelection>
+        ) }
+      </div>
     );
+  }
+
+  private _onCollapse(group) {
+    // this._groups = this._iterate(group, this._groups);
+    if (group.level > 0 && !this.hasGottenStuff) {
+      this.hasGottenStuff = true;
+      this._onLoadNextPage();
+    }
+    // this.forceUpdate();
+  }
+
+  private _onReloadClick() {
+    this.setState({ rows: null, nextPageToken: null });
+
+    this._onLoadNextPage();
+  }
+
+  private _onDelayedLoadNextPage() {
+    let { isLoading } = this.state;
+
+    if (!isLoading) {
+      this.setState({ isLoading: true });
+
+      // This setTimeout is only here for illustrating a slow API. Reddit API is pretty fast.
+      this._onLoadNextPage();
+    }
+  }
+
+  private _onLoadNextPage() {
+    let { subreddit } = this.state;
+    let url = `https://www.reddit.com/r/` +
+      `${subreddit}.json` +
+      '?limit=100';
+
+    this.setState({ isLoading: true });
+
+    fetch(url).then(
+      response => response.json()).then(json => {
+        let rows = this._getRowsFromData((json as any).data);
+        let url2 = `https://www.reddit.com/r/` +
+          `${subreddit}.json` +
+          '?limit=100' +
+          '&after=2';
+        fetch(url2).then(
+          response2 => response2.json()).then(json2 => {
+            let otherRows = this._getRowsFromData((json2 as any).data)
+            rows = rows.concat(otherRows);
+            this.setState({
+              rows,
+              isLoading: false
+            }, () => this._forceUpdate(1000, 5));
+            this._selection.setItems(rows);
+          });
+      });
+  }
+  private _forceUpdate(timeout, times) {
+    this._list.forceUpdate();
+    // setTimeout(() => this._list.forceUpdate(), 4000);
+    // if (times > 0) {
+    //   let time = timeout || 0;
+    //   if (this._list) {
+    //     setTimeout(() => this._forceUpdate(timeout, times - 1)
+    //       , time);
+    //   }
+    // }
+  }
+
+  private _getRowsFromData(response) {
+    let { rows, nextPageToken } = this.state;
+
+    let items = response.children.map(child => {
+      let data = child.data;
+      return {
+        key: data.id,
+        subreddit: data.subreddit,
+        title: data.title,
+        author: data.author,
+        url: data.url,
+        score: data.score,
+        thumb: data.thumbnail,
+        comments: data.num_comments
+      };
+    });
+
+    if (rows && nextPageToken) {
+      items = rows.slice(0, rows.length - 1).concat(items);
+    }
+
+    if (response.after) {
+      items.push(null);
+      console.log(items)
+    }
+
+    return items;
   }
 }
