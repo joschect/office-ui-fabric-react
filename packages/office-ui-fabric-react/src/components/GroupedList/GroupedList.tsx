@@ -8,24 +8,41 @@ import {
 import {
   IGroupedList,
   IGroupedListProps,
-  IGroup
+  IGroup,
+  IGroupDividerProps
 } from './GroupedList.Props';
-import {
-  GroupedListSection
-} from './GroupedListSection';
 import {
   List
 } from '../../List';
 import {
-  SelectionMode
+  SelectionMode,
+  SELECTION_CHANGE
 } from '../../utilities/selection/index';
+import { GroupFooter } from './GroupFooter';
+import { GroupHeader } from './GroupHeader';
 import * as stylesImport from './GroupedList.scss';
 const styles: any = stylesImport;
+
+export enum ItemType {
+  normal,
+  header,
+  footer
+}
+
+export type GroupedListItem = {
+  itemType: ItemType;
+  nestingDepth?: number,
+  item?: any,
+  index?: number
+  isSelected?: boolean;
+};
 
 export interface IGroupedListState {
   lastWidth?: number;
   lastSelectionMode?: SelectionMode;
   groups?: IGroup[];
+
+  items?: GroupedListItem[];
 }
 
 export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListState> implements IGroupedList {
@@ -75,14 +92,24 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
     }
   }
 
+  public componentDidMount() {
+    let { dragDropHelper, selection } = this.props;
+
+    if (selection) {
+      this._events.on(selection, SELECTION_CHANGE, this._onSelectionChange);
+    }
+  }
+
   public render() {
     let {
-      className
+      className,
+      items,
+      groupProps
     } = this.props;
     let {
       groups
     } = this.state;
-
+    let groupedItems: GroupedListItem[] = this._buildGroups(groups);
     return (
       <div
         ref='root'
@@ -91,16 +118,11 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
         data-is-scrollable='false'
         role='grid'
       >
-        { !groups ?
-          this._renderGroup(null, 0) : (
-            <List
-              ref='list'
-              items={ groups }
-              onRenderCell={ this._renderGroup }
-              getItemCountForPage={ () => 1 }
-            />
-          )
-        }
+        <List
+          ref='list'
+          items={ groupedItems }
+          onRenderCell={ this._onRenderItem }
+        />
       </div>
     );
   }
@@ -130,72 +152,102 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
     }
   }
 
-  @autobind
-  private _renderGroup(group, groupIndex) {
-    let {
-      dragDropEvents,
-      dragDropHelper,
-      eventsToRegister,
-      groupProps,
-      items,
-      listProps,
-      onRenderCell,
-      selectionMode,
-      selection,
-      viewport
-    } = this.props;
+  private _onSelectionChange() {
+    this.forceUpdate();
+  }
 
-    // override group header/footer props as needed
-    let dividerProps = {
+  private _buildGroups(groups: IGroup[]) {
+    const { items, groupProps, selection } = this.props;
+    let groupedItems: GroupedListItem[] = [];
+    let currIndex = 0;
+    let appendGroupedChildren = (groupList: IGroup[]) => {
+      for (const group of groupList) {
+        let renderCount = group && groupProps.getGroupItemLimit ? groupProps.getGroupItemLimit(group) : Infinity;
+        let groupCount = Math.min(group.count, renderCount);
+        groupedItems.push({
+          item: group,
+          itemType: ItemType.header,
+          index: currIndex,
+          isSelected: (selection && group) ? selection.isRangeSelected(group.startIndex, groupCount) : false,
+          nestingDepth: group.level
+        });
+        currIndex++;
+        if (!group.isCollapsed) {
+          if (!group.children || group.children.length < 1) {
+            for (let i = group.startIndex; i < items.length && i < (group.startIndex + groupCount); i++) {
+              groupedItems.push({
+                item: items[i],
+                itemType: ItemType.normal,
+                index: i,
+                isSelected: selection ? selection.isIndexSelected(i) : false,
+                nestingDepth: group.level
+              });
+              currIndex++;
+            }
+            let isFooterVisible = group && !group.children && !group.isCollapsed && !group.isShowingAll &&
+              (group.count > renderCount || group.hasMoreData);
+            if (isFooterVisible) {
+              groupedItems.push({
+                item: group,
+                itemType: ItemType.footer,
+                index: currIndex,
+                nestingDepth: group.level
+              });
+              currIndex++;
+            }
+          } else {
+            appendGroupedChildren(group.children);
+          }
+        }
+      }
+    };
+
+    appendGroupedChildren(groups);
+    return groupedItems;
+  }
+
+  @autobind
+  private _onRenderItem(item: GroupedListItem) {
+    const { groupProps, viewport, selectionMode } = this.props;
+    const { onRenderHeader = this._renderHeader,
+      onRenderFooter = this._renderFooter } = groupProps;
+    let dividerProps: IGroupDividerProps = {
+      group: item.item,
+      groupIndex: item.index,
+      groupLevel: item ? item.nestingDepth : 0,
+      isSelected: item.isSelected,
+      viewport: viewport,
+      selectionMode: selectionMode,
       onToggleSelectGroup: this._onToggleSelectGroup,
       onToggleCollapse: this._onToggleCollapse,
       onToggleSummarize: this._onToggleSummarize
     };
-
-    let headerProps = assign({}, groupProps.headerProps, dividerProps);
-    let footerProps = assign({}, groupProps.footerProps, dividerProps);
-    let groupNestingDepth = this._getGroupNestingDepth();
-
-    return (!group || group.count > 0) ? (
-      <GroupedListSection
-        ref={ 'group_' + groupIndex }
-        key={ this._getGroupKey(group, groupIndex) }
-        dragDropEvents={ dragDropEvents }
-        dragDropHelper={ dragDropHelper }
-        eventsToRegister={ eventsToRegister }
-        footerProps={ footerProps }
-        getGroupItemLimit={ groupProps && groupProps.getGroupItemLimit }
-        group={ group }
-        groupIndex={ groupIndex }
-        groupNestingDepth={ groupNestingDepth }
-        headerProps={ headerProps }
-        listProps={ listProps }
-        items={ items }
-        onRenderCell={ onRenderCell }
-        onRenderGroupHeader={ groupProps.onRenderHeader }
-        onRenderGroupFooter={ groupProps.onRenderFooter }
-        selectionMode={ selectionMode }
-        selection={ selection }
-        viewport={ viewport }
-      />
-    ) : null;
-  }
-
-  private _getGroupKey(group: IGroup, index: number): string {
-    return 'group-' + ((group && group.key) ? group.key : String(index));
-  }
-
-  private _getGroupNestingDepth(): number {
-    let { groups } = this.state;
-    let level = 0;
-    let groupsInLevel = groups;
-
-    while (groupsInLevel && groupsInLevel.length > 0) {
-      level++;
-      groupsInLevel = groupsInLevel[0].children;
+    let groupHeaderProps: IGroupDividerProps = assign({}, groupProps.headerProps, dividerProps);
+    let groupFooterProps: IGroupDividerProps = assign({}, groupProps.footerProps, dividerProps);
+    let rendered;
+    switch (item.itemType) {
+      case ItemType.header:
+        rendered = onRenderHeader(groupHeaderProps, this._renderHeader);
+        break;
+      case ItemType.footer:
+        rendered = onRenderFooter(groupFooterProps, this._renderFooter);
+        break;
+      default:
+        rendered = this._renderItem(item);
+        break;
     }
+    return rendered;
+  }
 
-    return level;
+  private _renderItem(item: GroupedListItem) {
+    return this.props.onRenderCell(item.nestingDepth, item.item, item.index);
+
+  }
+  private _renderHeader(groupHeaderProps: IGroupDividerProps) {
+    return <GroupHeader {...groupHeaderProps} />;
+  }
+  private _renderFooter(groupHeaderProps: IGroupDividerProps) {
+    return <GroupFooter {...groupHeaderProps} />;
   }
 
   @autobind
@@ -222,24 +274,8 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
   }
 
   private _forceListUpdates(groups?: IGroup[]) {
-    groups = groups || this.state.groups;
-
-    let groupCount = groups ? groups.length : 1;
-
     if (this.refs.list) {
       this.refs.list.forceUpdate();
-
-      for (let i = 0; i < groupCount; i++) {
-        let group = this.refs.list.refs['group_' + String(i)] as GroupedListSection;
-        if (group) {
-          group.forceListUpdate();
-        }
-      }
-    } else {
-      let group = this.refs['group_' + String(0)] as GroupedListSection;
-      if (group) {
-        group.forceListUpdate();
-      }
     }
   }
 
