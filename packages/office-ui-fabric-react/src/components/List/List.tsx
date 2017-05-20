@@ -105,6 +105,10 @@ export class List extends BaseComponent<IListProps, IListState> implements IList
 
   private _measureVersion: number;
 
+  private _scrollRect: IRectangle;
+
+  private _scrollHeight: number;
+
   constructor(props: IListProps) {
     super(props);
 
@@ -690,25 +694,41 @@ export class List extends BaseComponent<IListProps, IListState> implements IList
     const { pages } = this.state;
     const renderCount = this._getRenderCount(props);
     let surfaceRect = this._surfaceRect;
+    let scrollRect = this._scrollRect;
 
     // WARNING: EXPENSIVE CALL! We need to know the surface top relative to the window.
     if (
       forceUpdate ||
       !pages ||
-      !this._surfaceRect ||
-      (pages.length > 0 && pages[0].items && pages[0].items.length < renderCount)) {
+      !this._surfaceRect) {
+      console.log('Remeasuring surface rect height');
       surfaceRect = this._surfaceRect = _measureSurfaceRect(this.refs.surface);
     }
 
+    if (this._scrollElement) {
+      if (!this._scrollRect ||
+        !this._scrollHeight ||
+        this._scrollElement.scrollHeight !== this._scrollHeight) {
+        console.log('Remeasuring scroll heights');
+        scrollRect = this._scrollRect = _measureSurfaceRect(this._scrollElement);
+      }
+      this._scrollHeight = this._scrollElement.scrollHeight
+    }
+
+    // console.log('surface rect', surfaceRect);
+    // if (this._scrollElement) {
+    //   console.log('scroll top and height', this._scrollElement.scrollTop, this._scrollElement.scrollHeight, this._scrollElement.getBoundingClientRect().height);
+    // }
     // If the surface is above the container top or below the container bottom, or if this is not the first
     // render return empty rect.
     // The first time the list gets rendered we need to calculate the rectangle. The width of the list is
     // used to calculate the width of the list items.
-    const visibleTop = Math.max(0, -surfaceRect.top);
+    const visibleTop = this._scrollElement ? this._scrollElement.scrollTop : 0;
+    const scrollHeight = scrollRect ? scrollRect.height : window.innerHeight;
     const visibleRect = {
       top: visibleTop,
       left: surfaceRect.left,
-      bottom: visibleTop + window.innerHeight,
+      bottom: visibleTop + scrollHeight,
       right: surfaceRect.right,
       width: surfaceRect.width,
       height: window.innerHeight
