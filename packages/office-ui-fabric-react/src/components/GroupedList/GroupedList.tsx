@@ -67,19 +67,21 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
 
     this.state = {
       lastWidth: 0,
-      groups: props.groups
+      groups: props.groups,
+      items: this._buildGroups(props)
     };
   }
 
   public componentWillReceiveProps(newProps) {
     let {
       groups,
-      selectionMode
+      selectionMode,
+      items
     } = this.props;
     let shouldForceUpdates = false;
 
-    if (newProps.groups !== groups) {
-      this.setState({ groups: newProps.groups });
+    if (newProps.groups !== groups || newProps.items !== items) {
+      this.setState({ groups: newProps.groups, items: this._buildGroups(newProps) });
       shouldForceUpdates = true;
     }
 
@@ -103,13 +105,12 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
   public render() {
     let {
       className,
-      items,
       groupProps
     } = this.props;
     let {
-      groups
+      groups,
+      items
     } = this.state;
-    let groupedItems: GroupedListItem[] = this._buildGroups(groups);
     return (
       <div
         ref='root'
@@ -120,7 +121,7 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
       >
         <List
           ref='list'
-          items={ groupedItems }
+          items={ items }
           onRenderCell={ this._onRenderItem }
         />
       </div>
@@ -156,8 +157,8 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
     this.forceUpdate();
   }
 
-  private _buildGroups(groups: IGroup[]) {
-    const { items, groupProps, selection } = this.props;
+  private _buildGroups(props?: IGroupedListProps): GroupedListItem[] {
+    const { items, groupProps, selection, groups } = props ? props : this.props;
     let groupedItems: GroupedListItem[] = [];
     let currIndex = 0;
     let appendGroupedChildren = (groupList: IGroup[]) => {
@@ -184,7 +185,7 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
               });
               currIndex++;
             }
-            let isFooterVisible = group && !group.children && !group.isCollapsed && !group.isShowingAll &&
+            let isFooterVisible = group && (!group.children || group.children.length < 1) && !group.isCollapsed && !group.isShowingAll &&
               (group.count > renderCount || group.hasMoreData);
             if (isFooterVisible) {
               groupedItems.push({
@@ -262,7 +263,9 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
 
       group.isCollapsed = !group.isCollapsed;
       this._updateIsSomeGroupExpanded();
-      this.forceUpdate();
+      this.setState({
+        items: this._buildGroups()
+      });
     }
   }
 
@@ -270,6 +273,9 @@ export class GroupedList extends BaseComponent<IGroupedListProps, IGroupedListSt
   private _onToggleSelectGroup(group: IGroup) {
     if (group) {
       this.props.selection.toggleRangeSelected(group.startIndex, group.count);
+      this.setState({
+        items: this._buildGroups()
+      });
     }
   }
 
