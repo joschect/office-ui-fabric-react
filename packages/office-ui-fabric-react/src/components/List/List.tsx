@@ -701,7 +701,6 @@ export class List extends BaseComponent<IListProps, IListState> implements IList
       forceUpdate ||
       !pages ||
       !this._surfaceRect) {
-      console.log('Remeasuring surface rect height');
       surfaceRect = this._surfaceRect = _measureSurfaceRect(this.refs.surface);
     }
 
@@ -709,7 +708,6 @@ export class List extends BaseComponent<IListProps, IListState> implements IList
       if (!this._scrollRect ||
         !this._scrollHeight ||
         this._scrollElement.scrollHeight !== this._scrollHeight) {
-        console.log('Remeasuring scroll heights');
         scrollRect = this._scrollRect = _measureSurfaceRect(this._scrollElement);
       }
       this._scrollHeight = this._scrollElement.scrollHeight
