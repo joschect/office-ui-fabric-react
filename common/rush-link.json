@@ -1,0 +1,41 @@
+{
+  "localLinks": {
+    "@uifabric/example-app-base": [
+      "@uifabric/utilities",
+      "office-ui-fabric-react-tslint"
+    ],
+    "@uifabric/example-component": [
+      "@uifabric/example-app-base",
+      "@uifabric/utilities",
+      "office-ui-fabric-react",
+      "office-ui-fabric-react-tslint"
+    ],
+    "@uifabric/fabric-website": [
+      "@uifabric/example-app-base",
+      "@uifabric/utilities",
+      "office-ui-fabric-react",
+      "office-ui-fabric-react-tslint"
+    ],
+    "@uifabric/styling": [
+      "@uifabric/utilities",
+      "office-ui-fabric-react-tslint"
+    ],
+    "@uifabric/utilities": [
+      "office-ui-fabric-react-tslint"
+    ],
+    "office-ui-fabric-react": [
+      "@uifabric/example-app-base",
+      "@uifabric/utilities",
+      "office-ui-fabric-react-tslint"
+    ],
+    "ssr-tests": [
+      "office-ui-fabric-react"
+    ],
+    "test-bundle-button": [
+      "office-ui-fabric-react"
+    ],
+    "todo-app": [
+      "office-ui-fabric-react"
+    ]
+  }
+}
