@@ -7,8 +7,9 @@ import {
   autobind
 } from 'office-ui-fabric-react/lib/Utilities';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
+import { DefaultButton } from 'office-ui-fabric-react/lib/Button';
 import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
-import { IPersonaProps } from 'office-ui-fabric-react/lib/Persona';
+import { IPersonaProps, Persona } from 'office-ui-fabric-react/lib/Persona';
 import { IContextualMenuItem } from 'office-ui-fabric-react/lib/ContextualMenu';
 import {
   CompactPeoplePicker,
@@ -24,6 +25,7 @@ import { Promise } from 'es6-promise';
 export interface IPeoplePickerExampleState {
   currentPicker?: number | string;
   delayResults?: boolean;
+  currentItems?: any[];
 }
 
 const suggestionProps: IBasePickerSuggestionsProps = {
@@ -76,7 +78,8 @@ export class PeoplePickerTypesExample extends BaseComponent<any, IPeoplePickerEx
 
     this.state = {
       currentPicker: 1,
-      delayResults: false
+      delayResults: false,
+      currentItems: [],
     };
   }
 
@@ -99,6 +102,8 @@ export class PeoplePickerTypesExample extends BaseComponent<any, IPeoplePickerEx
       case 5:
         currentPicker = this._renderLimitedSearch();
         break;
+      case 6:
+        currentPicker = this._renderControlledPicker();
     }
 
     return (
@@ -111,7 +116,8 @@ export class PeoplePickerTypesExample extends BaseComponent<any, IPeoplePickerEx
               { key: 2, text: 'Compact' },
               { key: 3, text: 'Members List' },
               { key: 4, text: 'Preselected Items' },
-              { key: 5, text: 'Limit Search' }
+              { key: 5, text: 'Limit Search' },
+              { key: 6, text: 'Controlled' }
             ] }
             selectedKey={ this.state.currentPicker }
             onChanged={ this._dropDownSelected }
@@ -185,6 +191,43 @@ export class PeoplePickerTypesExample extends BaseComponent<any, IPeoplePickerEx
         pickerSuggestionsProps={ limitedSearchSuggestionProps }
       />
     );
+  }
+
+  public _renderControlledPicker() {
+    let controlledItems = [];
+    for (let i = 0; i < 5; i++) {
+      controlledItems.push(this._peopleList[i]);
+    }
+    return (
+      <div>
+        <NormalPeoplePicker
+          onResolveSuggestions={ this._onFilterChanged }
+          getTextFromItem={ (persona: IPersonaProps) => persona.primaryText }
+          pickerSuggestionsProps={ suggestionProps }
+          className={ 'ms-PeoplePicker' }
+          key={ 'controlled' }
+          selectedItems={ this.state.currentItems }
+          onChange={ this.onItemsChange.bind(this) }
+        />
+        <label> Click to Add a person </label>
+        { controlledItems.map(item => <div>
+          <DefaultButton className='controlledPickerButton'
+            onClick={ () => {
+              this.setState({
+                currentItems: this.state.currentItems.concat([item])
+              });
+            } }>
+            <Persona { ...item} />
+          </DefaultButton>
+        </div>) }
+      </div>
+    );
+  }
+
+  public onItemsChange(items: any[]) {
+    this.setState({
+      currentItems: items
+    });
   }
 
   @autobind
