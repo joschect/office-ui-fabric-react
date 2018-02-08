@@ -1,0 +1,18 @@
+@import '../../common/common';
+
+.Autofill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid $ms-color-neutralTertiary;
+  min-width: 180px;
+  min-height: 30px;
+  &:hover {
+    border-color: $inputBorderHoveredColor;
+  }
+
+  &.inputFocused {
+    border-color: $inputFocusBorderAltColor;
+  }
+}

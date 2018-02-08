@@ -7,6 +7,7 @@ import {
   getNativeProps,
   inputProperties
 } from '../../Utilities';
+import * as baseAutoFillStyles from './Autofill.BaseStyle.scss';
 
 export interface IAutofillState {
   displayValue?: string;
@@ -118,6 +119,7 @@ export class Autofill extends BaseComponent<IAutofillProps, IAutofillState> impl
       <input
         { ...nativeProps }
         ref={ this._resolveRef('_inputElement') }
+        className={ baseAutoFillStyles.Autofill }
         value={ displayValue }
         autoCapitalize={ 'off' }
         autoComplete={ 'off' }

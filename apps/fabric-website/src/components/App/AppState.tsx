@@ -105,6 +105,12 @@ export const AppState: IAppState = {
           getComponent: cb => require.ensure([], (require) => cb(require<any>('../../pages/Components/ActivityItemComponentPage').ActivityItemComponentPage))
         },
         {
+          title: 'Autofill',
+          url: '#components/autofill',
+          component: () => <LoadingComponent title='Autofill' />,
+          getComponent: cb => require.ensure([], (require) => cb(require<any>('../../pages/Components/Page/AutofillComponentPage').AutofillComponentPage))
+        },
+        {
           title: 'Breadcrumb',
           url: '#/components/breadcrumb',
           component: () => <LoadingComponent title='Breadcrumb' />,

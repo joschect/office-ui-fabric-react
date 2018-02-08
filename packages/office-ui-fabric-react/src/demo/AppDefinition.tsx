@@ -23,6 +23,12 @@ export const AppDefinition: IAppDefinition = {
           url: '#/examples/activityitem'
         },
         {
+          component: require<any>('../components/Autofill/AutofillPage').AutofillPage,
+          key: 'Autofill',
+          name: 'Autofill',
+          url: '#/examples/autofill'
+        },
+        {
           component: require<any>('../components/Breadcrumb/BreadcrumbPage').BreadcrumbPage,
           key: 'Breadcrumb',
           name: 'Breadcrumb',

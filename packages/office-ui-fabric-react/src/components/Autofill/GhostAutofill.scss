@@ -1,0 +1,22 @@
+@import '../../common/common';
+
+.ghostAutoFillTop,
+.ghostAutoFillBottom {
+  flex-grow: 1;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+.ghostAutoFillBottom {
+  color: $ms-color-themeLight;
+}
+
+.ghostAutoFillTop {
+  background: transparent;
+  position: absolute;
+}
+
+.ghostAutoFillContainer {
+  display: flex;
+}
