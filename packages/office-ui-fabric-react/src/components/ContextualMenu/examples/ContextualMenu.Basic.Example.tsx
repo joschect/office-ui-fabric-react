@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { ContextualMenuItemType } from 'office-ui-fabric-react/lib/ContextualMenu';
 import { DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { getAnnouncer, Announcer } from 'office-ui-fabric-react/lib/components/Announcer/Announcer';
 import './ContextualMenuExample.scss';
 
 export class ContextualMenuBasicExample extends React.Component {
 
+  private _announcer: Announcer;
   constructor(props: {}) {
     super(props);
+    this._announcer = getAnnouncer();
     this.state = {
       showCallout: false
     };
@@ -23,7 +26,11 @@ export class ContextualMenuBasicExample extends React.Component {
             items: [
               {
                 key: 'newItem',
-                name: 'New'
+                name: 'New',
+                onClick: () => {
+                  this._announcer.queueAnnouncement('wooh');
+                  this._announcer.queueAnnouncement('squeeeeeeeeeeeepps squee squeepy squeep square');
+                }
               },
               {
                 key: 'divider_1',
@@ -31,7 +38,10 @@ export class ContextualMenuBasicExample extends React.Component {
               },
               {
                 key: 'rename',
-                name: 'Rename'
+                name: 'Rename',
+                onClick: () => {
+                  this._announcer.queueAnnouncement('Hi there this is a much longer announcement that could take a great deal of time.');
+                }
               },
               {
                 key: 'edit',
