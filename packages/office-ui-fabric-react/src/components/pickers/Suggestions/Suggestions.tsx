@@ -320,9 +320,20 @@ export class Suggestions<T> extends BaseComponent<ISuggestionsProps<T>, ISuggest
         scope: 'SuggestionItem'
       }
     );
+    let selectedIndex = -1;
+    suggestions.some((element, index) => {
+      if (element.selected) {
+        selectedIndex = index;
+        return true;
+      }
+      return false;
+    });
 
     if (resultsMaximumNumber) {
-      suggestions = suggestions.slice(0, resultsMaximumNumber);
+      suggestions =
+        selectedIndex >= resultsMaximumNumber
+          ? suggestions.slice(selectedIndex - resultsMaximumNumber + 1, resultsMaximumNumber - 1)
+          : suggestions.slice(0, resultsMaximumNumber);
     }
 
     if (suggestions.length === 0) {

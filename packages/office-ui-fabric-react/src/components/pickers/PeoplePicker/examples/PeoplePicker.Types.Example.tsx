@@ -39,7 +39,7 @@ const suggestionProps: IBasePickerSuggestionsProps = {
 
 const limitedSearchAdditionalProps: IBasePickerSuggestionsProps = {
   searchForMoreText: 'Load all Results',
-  resultsMaximumNumber: 10,
+  resultsMaximumNumber: 3,
   searchingText: 'Searching...'
 };
 

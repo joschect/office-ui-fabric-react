@@ -149,16 +149,15 @@ export class Autofill extends BaseComponent<IAutofillProps, IAutofillState> impl
   // Find out more at https://developer.mozilla.org/en-US/docs/Web/Events/compositionstart
   private _onCompositionEnd = (ev: React.CompositionEvent<HTMLInputElement>) => {
     const inputValue = this._getCurrentInputValue();
-    this._tryEnableAutofill(inputValue, this.value, false, true);
-    // Korean characters typing issue has been addressed in React 16.5
-    // TODO: revert back below lines when we upgrade to React 16.5
-    // Find out at https://github.com/facebook/react/pull/12563/commits/06524c6c542c571705c0fd7df61ac48f3d5ce244
-    const isKorean = (ev.nativeEvent as any).locale === 'ko';
+    // Only attempt to enable autofill if data has been entered. Otherwise
+    // it's likely that it was a delete event and autofill shouldn't be enabled
+    if (!!ev.nativeEvent.data) {
+      this._tryEnableAutofill(inputValue, this.value, false, true);
+    }
     // Due to timing, this needs to be async, otherwise no text will be selected.
-    this._async.setTimeout(() => {
-      const updatedInputValue = isKorean ? this.value : inputValue;
-      this._updateValue(updatedInputValue);
-    }, 0);
+    // this._async.setTimeout(() => {
+    this._updateValue(this.value);
+    // }, 0);
   };
 
   private _onClick = () => {
@@ -174,7 +173,7 @@ export class Autofill extends BaseComponent<IAutofillProps, IAutofillState> impl
 
     // If the event is actively being composed, then don't alert autofill.
     // Right now typing does not have isComposing, once that has been fixed any should be removed.
-    if (!(ev.nativeEvent as any).isComposing) {
+    if (!(ev.nativeEvent as any).isComposing || !(ev.nativeEvent as any).composed) {
       switch (ev.which) {
         case KeyCodes.backspace:
           this._autoFillEnabled = false;
