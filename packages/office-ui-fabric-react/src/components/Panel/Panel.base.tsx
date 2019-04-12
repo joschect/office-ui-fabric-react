@@ -21,7 +21,6 @@ const getClassNames = classNamesFunction<IPanelStyleProps, IPanelStyles>();
 
 export interface IPanelState {
   isFooterSticky?: boolean;
-  isOpen?: boolean;
   isAnimating?: boolean;
   id?: string;
 }
@@ -38,6 +37,7 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
   private _panel = React.createRef<HTMLDivElement>();
   private _classNames: IProcessedStyleSet<IPanelStyles>;
   private _scrollableContent: HTMLDivElement | null;
+  private _isOpen: boolean;
 
   constructor(props: IPanelProps) {
     super(props);
@@ -48,9 +48,9 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
       firstFocusableSelector: 'focusTrapZoneProps'
     });
 
+    this._isOpen = false;
     this.state = {
       isFooterSticky: false,
-      isOpen: false,
       isAnimating: false,
       id: getId('Panel')
     };
@@ -80,7 +80,7 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
   }
 
   public componentWillReceiveProps(newProps: IPanelProps): void {
-    if (newProps.isOpen !== this.state.isOpen) {
+    if (newProps.isOpen !== this._isOpen) {
       if (newProps.isOpen) {
         this.open();
       } else {
@@ -115,7 +115,8 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
       onRenderBody = this._onRenderBody,
       onRenderFooter = this._onRenderFooter
     } = this.props;
-    const { isFooterSticky, isOpen, isAnimating, id } = this.state;
+    const isOpen: boolean = this._isOpen;
+    const { isFooterSticky, isAnimating, id } = this.state;
     const isLeft = type === PanelType.smallFixedNear || type === PanelType.customNear ? true : false;
     const isRTL = getRTL();
     const isOnRightSide = isRTL ? isLeft : !isLeft;
@@ -190,10 +191,10 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
   }
 
   public open() {
-    if (!this.state.isOpen) {
+    if (!this._isOpen) {
+      this._isOpen = true;
       this.setState(
         {
-          isOpen: true,
           isAnimating: true
         },
         () => {
@@ -204,15 +205,15 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
   }
 
   public dismiss = (ev?: React.SyntheticEvent<HTMLElement>): void => {
-    if (this.state.isOpen) {
+    if (this._isOpen) {
       if (this.props.onDismiss) {
         this.props.onDismiss(ev);
       }
 
       if (!ev || (ev && !ev.defaultPrevented)) {
+        this._isOpen = false;
         this.setState(
           {
-            isOpen: false,
             isAnimating: true
           },
           () => {
@@ -328,7 +329,7 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
 
   private _dismissOnOuterClick(ev: any): void {
     const panel = this._panel.current;
-    if (this.state.isOpen && panel) {
+    if (this._isOpen && panel) {
       if (!elementContains(panel, ev.target)) {
         if (this.props.onOuterClick) {
           this.props.onOuterClick();
@@ -350,7 +351,7 @@ export class PanelBase extends BaseComponent<IPanelProps, IPanelState> implement
       isAnimating: false
     });
 
-    if (!this.state.isOpen && this.props.onDismissed) {
+    if (!this._isOpen && this.props.onDismissed) {
       this.props.onDismissed();
     }
   };
