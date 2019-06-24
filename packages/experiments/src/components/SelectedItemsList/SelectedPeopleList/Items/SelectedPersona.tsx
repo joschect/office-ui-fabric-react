@@ -103,13 +103,15 @@ const SelectedPersonaInner = React.memo(<TPersona extends IPersonaProps = IPerso
         <div className={css('ms-PickerItem-content', classNames.itemContentWrapper)} id={'selectedItemPersona-' + itemId}>
           <Persona {...item} size={PersonaSize.size32} styles={classNames.subComponentStyles.personaStyles} coinProps={coinProps} />
         </div>
-        <IconButton
-          onClick={onRemoveClicked}
-          iconProps={{ iconName: 'Cancel', style: { fontSize: '14px' } }}
-          className={css('ms-PickerItem-removeButton', classNames.removeButton)}
-          styles={classNames.subComponentStyles.actionButtonStyles()}
-          ariaLabel={removeButtonAriaLabel}
-        />
+        {props.onRemoveItem && (
+          <IconButton
+            onClick={onRemoveClicked}
+            iconProps={{ iconName: 'Cancel', style: { fontSize: '14px' } }}
+            className={css('ms-PickerItem-removeButton', classNames.removeButton)}
+            styles={classNames.subComponentStyles.actionButtonStyles()}
+            ariaLabel={removeButtonAriaLabel}
+          />
+        )}
       </div>
     </div>
   );
