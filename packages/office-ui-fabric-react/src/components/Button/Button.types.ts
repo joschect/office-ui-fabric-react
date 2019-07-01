@@ -225,6 +225,13 @@ export interface IButtonProps
   rootProps?: React.ButtonHTMLAttributes<HTMLButtonElement> | React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
   /**
+   * Experimental prop that get passed into the menuButton that's rendered as part of
+   * split button. Anything passed in will likely need to have accompanying
+   * style changes.
+   */
+  splitButtonMenuProps?: IButtonProps;
+
+  /**
    * Any custom data the developer wishes to associate with the menu item.
    * Deprecated, use `checked` if setting state.
    * @deprecated unused, use `checked` if setting state.
