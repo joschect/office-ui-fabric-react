@@ -1,0 +1,8 @@
+{
+  "comment": "CommandBar: Expose dataDidRender property",
+  "type": "minor",
+  "packageName": "office-ui-fabric-react",
+  "email": "joschect@microsoft.com",
+  "commit": "efd0981543b0d16cf864454a2f20e8524c6638fc",
+  "date": "2019-07-22T22:16:06.824Z"
+}
