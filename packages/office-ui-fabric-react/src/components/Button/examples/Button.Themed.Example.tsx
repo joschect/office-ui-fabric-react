@@ -2,9 +2,9 @@ import * as React from 'react';
 import { mergeCss } from '@uifabric/merge-styles';
 import { Provider } from './Provider';
 import { FluentTheme, PlannerFluentTheme } from './fluent/FluentTheme';
-import { FluentButton } from './fluent/FluentButton';
+import { FluentButton, OtherButton } from './fluent/FluentButton';
 import { FluentMenu } from './fluent/FluentMenu';
-import { FluentMenuItem } from './fluent/FluentMenuItem';
+import { FluentMenuItem, OtherMenuItem } from './fluent/FluentMenuItem';
 
 const oddRedBorder = mergeCss({ border: '10px solid red' });
 const example = mergeCss({ margin: 20 });
@@ -47,9 +47,11 @@ export const ButtonThemedExample: React.FunctionComponent<{}> = props => {
       <>
         <div className={example}>
           <FluentButton tiny>tiny</FluentButton>
+          <OtherButton tiny> tiny</OtherButton>
         </div>
         <div className={example}>
           <FluentButton large>large</FluentButton>
+          <OtherButton large>large</OtherButton>
         </div>
         <div className={example}>
           <FluentButton size="s">small</FluentButton>
@@ -81,6 +83,7 @@ export const ButtonThemedExample: React.FunctionComponent<{}> = props => {
           <FluentButton onClick={onClick} className={oddRedBorder}>
             Fluent Button with an odd red border
           </FluentButton>
+          <OtherButton className={oddRedBorder}>Fluent Odd red border</OtherButton>
         </div>
       </>
     );
@@ -97,6 +100,7 @@ export const ButtonThemedExample: React.FunctionComponent<{}> = props => {
       <Provider theme={PlannerFluentTheme}>
         <FluentMenu rounded slotProps={{ items }} />
         <FluentMenuItem slots={{ menu: FluentMenu }} slotProps={{ menu: { slotProps: { items: items } } }} />
+        <OtherMenuItem slots={{ menu: FluentMenu }} slotProps={{ menu: { slotProps: { items: items } } }} />
       </Provider>
     </div>
   );

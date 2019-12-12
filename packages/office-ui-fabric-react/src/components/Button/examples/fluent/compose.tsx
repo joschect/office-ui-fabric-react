@@ -39,36 +39,35 @@ const getProps = (cssMap: any, props: any, slots: any = {}) => {
   return newProps;
 };
 
-export const getClassName = (
-  cache: ClassCache,
-  theme: any,
-  componentProps: any,
-  componentName: string,
-  cssRenderer: (args: any) => string = mergeCss
-) => {
+export interface IThemeComponent {
+  variants?: any;
+  styles?: any;
+}
+
+export const getThemeComponentStyles = (themeComponent: IThemeComponent, theme: any, componentProps: any) => {
   const stylesAdditions: any = {};
   const variantNames: string[] = [];
 
-  const componentStyles =
-    theme && theme.components && theme.components[componentName] && theme.components[componentName].styles
-      ? theme.components[componentName].styles({ typography: theme.typography, colors: theme.colors })
-      : {};
+  // Get the component styles by transforming the theme using the themeComponent's styles
+  const componentStyles = themeComponent.styles ? themeComponent.styles({ typography: theme.typography, colors: theme.colors }) : {};
 
+  // Get all of the slots for the given component
   const slotNames: string[] = Object.keys(componentStyles);
 
-  if (theme && theme.components && theme.components[componentName] && theme.components[componentName].variants) {
-    Object.keys(theme.components[componentName].variants).forEach(variantName => {
+  // Iterate through varients if this exists
+  if (themeComponent.variants) {
+    Object.keys(themeComponent.variants).forEach(variantName => {
       stylesAdditions[variantName] = {};
       variantNames.push(variantName);
-      Object.keys(theme.components[componentName].variants[variantName]).forEach(enumValue => {
+      Object.keys(themeComponent.variants[variantName]).forEach(enumValue => {
         const variant: any = {};
         stylesAdditions[variantName][enumValue] = variant;
 
-        Object.keys(theme.components[componentName].variants[variantName][enumValue]).forEach(slotName => {
+        Object.keys(themeComponent.variants[variantName][enumValue]).forEach(slotName => {
           if (!slotNames.find(s => s === slotName)) {
             slotNames.push(slotName);
           }
-          variant[slotName] = theme.components[componentName].variants[variantName][enumValue][slotName];
+          variant[slotName] = themeComponent.variants[variantName][enumValue][slotName];
         });
       });
     });
@@ -84,6 +83,29 @@ export const getClassName = (
       }
     });
   });
+  return { slotNames, mergedSlotStyles, variantNames };
+};
+
+export type GetThemeComponent = (theme: any, name: string) => IThemeComponent;
+export type TryThemeComponent = IThemeComponent | ((theme: any, name: string) => IThemeComponent);
+
+export const getClassName = (
+  cache: ClassCache,
+  theme: any,
+  componentProps: any,
+  componentName: string,
+  cssRenderer: (args: any) => string = mergeCss,
+  propComponent?: TryThemeComponent
+) => {
+  const themeComponent: IThemeComponent | undefined =
+    typeof propComponent === 'function' ? propComponent(theme, componentName) : propComponent;
+
+  // Bail if no theme component found
+  if (!themeComponent) {
+    return {};
+  }
+
+  const { variantNames, slotNames, mergedSlotStyles } = getThemeComponentStyles(themeComponent, theme, componentProps);
 
   const mutableCacheEntry: any = {};
   const cacheKey = new VariantBasedCacheKeyStrategy(variantNames, componentProps);
@@ -98,12 +120,29 @@ export const getClassName = (
   return mutableCacheEntry;
 };
 
-export const compose = (displayName: string, BaseComponent: any, settings = { slots: {} }) => {
+export const compose = (displayName: string, BaseComponent: any, settings = { slots: {} }, themeComponent: TryThemeComponent) => {
   const cache = new ClassCache();
   return (props: any) => {
     const theme = (React.useContext(ProviderContext) as any)!;
-    const cssMap = getClassName(cache, theme, props, displayName);
+    const cssMap = getClassName(cache, theme, props, displayName, undefined, themeComponent);
     const newProps = getProps(cssMap, props, settings.slots);
     return <BaseComponent {...newProps} />;
   };
+};
+
+export const getComponentFromTheme: GetThemeComponent = (theme, componentName) => {
+  if (!(theme && theme.components && theme.components[componentName])) {
+    return {};
+  }
+  const themeComponent: IThemeComponent = theme.components[componentName];
+  return themeComponent;
+};
+
+export const composeThemeDriven = (displayName: string, BaseComponent: any, settings = { slots: {} }) => {
+  return compose(
+    displayName,
+    BaseComponent,
+    settings,
+    getComponentFromTheme
+  );
 };

@@ -2,7 +2,7 @@ import { IFluentThemeShape, ColorRamp } from './FluentThemeShape';
 
 export const FluentTheme: IFluentThemeShape = {
   colors: {
-    brand: new ColorRamp(['#00f9ff', '#008e91', '#003233']),
+    brand: new ColorRamp(['pink', 'salmon', 'blue']),
     neutral: new ColorRamp(['#dedede', '#7c7c7c', '#292929'])
   },
   typography: {

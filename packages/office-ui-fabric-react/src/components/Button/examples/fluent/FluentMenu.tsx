@@ -1,6 +1,6 @@
 import { BaseMenu } from '../BaseMenu';
 import { FluentMenuItem } from './FluentMenuItem';
-import { compose } from './compose';
+import { compose, getComponentFromTheme } from './compose';
 
 export const FluentMenu = compose(
   'FluentMenu',
@@ -9,5 +9,6 @@ export const FluentMenu = compose(
     slots: {
       item: FluentMenuItem
     }
-  }
+  },
+  getComponentFromTheme
 );
